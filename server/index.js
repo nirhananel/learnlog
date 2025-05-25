@@ -1,46 +1,52 @@
-const connectDB = require('./db');
-connectDB(); 
 const express = require('express');
 const cors = require('cors');
+const bodyParser = require('body-parser');
+const connectDB = require('./db');
+const LearnedItem = require('./models/LearnedItem'); // our mongoose model
+
 const app = express();
-const port = 3000;
+const PORT = process.env.PORT || 3001;
 
-// שימוש ב-JSON Body Parser
-app.use(express.json());
+// Connect to MongoDB
+connectDB();
+
+// Middlewares
 app.use(cors());
+app.use(bodyParser.json());
 
-// מערך זמני (כמו דאטה מדומה)
-const learnedItems = [
-  { id: 1, topic: 'JavaScript', content: 'Learned about arrow functions' },
-  { id: 2, topic: 'AI', content: 'Prompt engineering basics' }
-];
+// POST /learned - save a new learned item
+app.post('/learned', async (req, res) => {
+  try {
+    const { topic, content } = req.body;
 
-// route ראשון – מחזיר את רשימת הלמידות
-app.get('/learned', (req, res) => {
-  res.json(learnedItems);
-});
+    // Simple validation
+    if (!topic || !content) {
+      return res.status(400).json({ error: 'Topic and content are required' });
+    }
 
-// POST - הוספת למידה חדשה
-app.post('/learned', (req, res) => {
-  const { topic, content } = req.body;
+    // Create and save to DB
+    const newItem = new LearnedItem({ topic, content });
+    await newItem.save();
 
-  if (!topic || !content) {
-    return res.status(400).json({ error: 'Topic and content are required' });
+    res.status(201).json(newItem);
+  } catch (error) {
+    console.error('Error saving item:', error.message);
+    res.status(500).json({ error: 'Server error' });
   }
-
-  const newItem = {
-    id: Date.now(), // ID פשוט לפי זמן
-    topic,
-    content,
-  };
-
-  learnedItems.push(newItem); // שמירה במערך
-
-  res.status(201).json(newItem);
 });
 
+// GET /learned - return all learned items sorted by date (newest first)
+app.get('/learned', async (req, res) => {
+  try {
+    const items = await LearnedItem.find().sort({ createdAt: -1 });
+    res.json(items);
+  } catch (error) {
+    console.error('Error fetching items:', error.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
-// הרצת השרת
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+// Start the server
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
