@@ -1,0 +1,14 @@
+# ========== SERVER ==========
+server/node_modules/
+server/package-lock.json
+server/.env
+
+# ========== CLIENT ==========
+client/node_modules/
+client/package-lock.json
+client/.env
+
+# ========== SYSTEM FILES ==========
+.DS_Store
+.env
+*.log
