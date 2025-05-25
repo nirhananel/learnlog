@@ -13,6 +13,7 @@ function App() {
       .catch(err => console.error('Failed to fetch:', err));
   }, []);
 
+  
   // Group items by topic
   const groupedByTopic = items.reduce((groups, item) => {
     if (!groups[item.topic]) {
