@@ -10,6 +10,7 @@ function App() {
     // State for form inputs
   const [topic, setTopic] = useState('');
   const [content, setContent] = useState('');
+  const allTopics = [...new Set(items.map(item => item.topic))];
 
   // Fetch learned items from the server
  useEffect(() => {
@@ -90,20 +91,42 @@ function App() {
       <h1>📚 What I Learned</h1>
 
       {/* Form to add new learned item */}
-      <form
+    <form
   onSubmit={handleSubmit}
   className="bg-white shadow-md rounded-xl p-6 mb-8 border border-gray-200"
 >
   <h2 className="text-xl font-semibold mb-4 text-gray-800">Add Something You Learned</h2>
 
+  {/* Suggested tags based on previous topics */}
+  {allTopics.length > 0 && (
+    <div className="flex flex-wrap gap-2 mb-4">
+      {allTopics.map((t, i) => (
+        <button
+          key={i}
+          type="button"
+          onClick={() => setTopic(t)}
+          className={`px-3 py-1 rounded-full text-sm border ${
+            topic === t
+              ? 'bg-blue-500 text-white'
+              : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+          }`}
+        >
+          {t}
+        </button>
+      ))}
+    </div>
+  )}
+
+  {/* Input for new or existing topic */}
   <input
     type="text"
-    placeholder="Topic"
+    placeholder="Or type a new topic..."
     value={topic}
     onChange={(e) => setTopic(e.target.value)}
     className="w-full p-2 mb-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
   />
 
+  {/* Textarea for content */}
   <textarea
     placeholder="What did you learn?"
     value={content}
@@ -118,6 +141,7 @@ function App() {
     Save
   </button>
 </form>
+
 {isLoading && (
   <div className="text-center py-10 text-blue-500 text-lg animate-pulse">
     Loading your learning log...
