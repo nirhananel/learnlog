@@ -63,45 +63,55 @@ function App() {
       <h1>📚 What I Learned</h1>
 
       {/* Form to add new learned item */}
-      <form onSubmit={handleSubmit} style={{ marginBottom: '2rem' }}>
-        <input
-          type="text"
-          placeholder="Topic"
-          value={topic}
-          onChange={(e) => setTopic(e.target.value)}
-          style={{ width: '100%', padding: '0.5rem', marginBottom: '0.5rem' }}
-        />
-        <textarea
-          placeholder="What did you learn?"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          style={{ width: '100%', padding: '0.5rem', height: '100px' }}
-        />
-        <button type="submit" style={{ padding: '0.5rem 1rem', marginTop: '0.5rem' }}>
-          Add Learning
-        </button>
-      </form>
+      <form
+  onSubmit={handleSubmit}
+  className="bg-white shadow-md rounded-xl p-6 mb-8 border border-gray-200"
+>
+  <h2 className="text-xl font-semibold mb-4 text-gray-800">Add Something You Learned</h2>
 
-      {/* Grouped display of learned items */}
+  <input
+    type="text"
+    placeholder="Topic"
+    value={topic}
+    onChange={(e) => setTopic(e.target.value)}
+    className="w-full p-2 mb-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+  />
+
+  <textarea
+    placeholder="What did you learn?"
+    value={content}
+    onChange={(e) => setContent(e.target.value)}
+    className="w-full p-2 mb-4 border border-gray-300 rounded-md h-24 focus:outline-none focus:ring-2 focus:ring-blue-400"
+  />
+
+  <button
+    type="submit"
+    className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md"
+  >
+    Save
+  </button>
+</form>
+
+
       {Object.keys(groupedByTopic).length === 0 ? (
-        <p>No items found yet.</p>
-      ) : (
-        Object.keys(groupedByTopic).map(topic => (
-          <div key={topic} style={{ marginBottom: '2rem' }}>
-            <h2>{topic}</h2>
-            <ul>
-              {groupedByTopic[topic].map((item, index) => (
-                <li key={index}>
-                  {item.content}{' '}
-                  <span style={{ color: 'gray' }}>
-                    ({new Date(item.createdAt).toLocaleString()})
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))
-      )}
+  <p className="text-gray-500 text-center">No items found yet.</p>
+) : (
+  Object.keys(groupedByTopic).map(topic => (
+    <div key={topic} className="mb-8">
+      <h3 className="text-lg font-semibold text-blue-700 mb-2 border-b pb-1">{topic}</h3>
+      <ul className="space-y-1">
+        {groupedByTopic[topic].map((item, index) => (
+          <li key={index} className="text-gray-800 text-sm">
+            {item.content}
+            <span className="text-gray-400 text-xs ml-2">
+              ({new Date(item.createdAt).toLocaleString()})
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  ))
+)}
     </div>
   );
 }
