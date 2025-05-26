@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 
 // Main App Component
 function App() {
+  const [isLoading, setIsLoading] = useState(true);
+
   // State for all learned items
   const [items, setItems] = useState([]);
 
@@ -10,12 +12,19 @@ function App() {
   const [content, setContent] = useState('');
 
   // Fetch learned items from the server
-  useEffect(() => {
-    fetch('http://localhost:3001/learned')
-      .then(res => res.json())
-      .then(data => setItems(data))
-      .catch(err => console.error('Failed to fetch:', err));
-  }, []);
+ useEffect(() => {
+  fetch('http://localhost:3001/learned')
+    .then(res => res.json())
+    .then(data => {
+      setItems(data);
+      setIsLoading(false); // Stop loading when data arrives
+    })
+    .catch(err => {
+      console.error('Failed to fetch:', err);
+      setIsLoading(false);
+    });
+}, []);
+
 
 
   // Group items by topic
@@ -91,6 +100,11 @@ function App() {
     Save
   </button>
 </form>
+{isLoading && (
+  <div className="text-center py-10 text-blue-500 text-lg animate-pulse">
+    Loading your learning log...
+  </div>
+)}
 
 
       {Object.keys(groupedByTopic).length === 0 ? (
