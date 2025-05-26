@@ -66,6 +66,24 @@ function App() {
       console.error('Failed to save item:', err);
     }
   };
+  const handleDelete = async (id) => {
+  const confirm = window.confirm("Are you sure you want to delete this item?");
+  if (!confirm) return;
+
+  try {
+    const res = await fetch(`http://localhost:3001/learned/${id}`, {
+      method: 'DELETE',
+    });
+
+    if (res.ok) {
+      // Remove from state
+      setItems(prev => prev.filter(item => item._id !== id));
+    }
+  } catch (err) {
+    console.error('Error deleting item:', err);
+  }
+};
+
 
   return (
     <div style={{ padding: '2rem', maxWidth: '600px', margin: 'auto' }}>
@@ -106,8 +124,7 @@ function App() {
   </div>
 )}
 
-
-      {Object.keys(groupedByTopic).length === 0 ? (
+{Object.keys(groupedByTopic).length === 0 ? (
   <p className="text-gray-500 text-center">No items found yet.</p>
 ) : (
   Object.keys(groupedByTopic).map(topic => (
@@ -115,17 +132,27 @@ function App() {
       <h3 className="text-lg font-semibold text-blue-700 mb-2 border-b pb-1">{topic}</h3>
       <ul className="space-y-1">
         {groupedByTopic[topic].map((item, index) => (
-          <li key={index} className="text-gray-800 text-sm">
-            {item.content}
-            <span className="text-gray-400 text-xs ml-2">
-              ({new Date(item.createdAt).toLocaleString()})
+          <li key={index} className="text-gray-800 text-sm flex items-center justify-between">
+            <span>
+              {item.content}
+              <span className="text-gray-400 text-xs ml-2">
+                ({new Date(item.createdAt).toLocaleString()})
+              </span>
             </span>
+
+            <button
+              onClick={() => handleDelete(item._id)}
+              className="ml-4 text-red-500 hover:text-red-700 text-sm"
+            >
+              🗑️
+            </button>
           </li>
         ))}
       </ul>
     </div>
   ))
 )}
+
     </div>
   );
 }
