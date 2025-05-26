@@ -45,6 +45,20 @@ app.get('/learned', async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+// DELETE /learned/:id - delete a learning item by ID
+app.delete('/learned/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await LearnedItem.findByIdAndDelete(id);
+    if (!deleted) {
+      return res.status(404).json({ error: 'Item not found' });
+    }
+    res.status(200).json({ message: 'Deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting item:', error.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
 // Start the server
 app.listen(PORT, () => {
