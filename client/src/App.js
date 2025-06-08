@@ -6,8 +6,18 @@ function App() {
   const [content, setContent] = useState('');
   const [selectedTags, setSelectedTags] = useState([]);
   const [customTag, setCustomTag] = useState('');
+  const [customTags, setCustomTags] = useState([]);
   const [smartTags, setSmartTags] = useState([]);
   const [defaultTags, setDefaultTags] = useState(['React', 'AI', 'Personal', 'Books', 'Tech', 'Health']);
+  const [groupedByTopic, setGroupedByTopic] = useState({});
+
+  const tagAliases = {
+    'Artificial Intelligence': 'AI',
+    'Artificial': 'AI',
+    'Machine Learning': 'ML',
+    'JS': 'JavaScript',
+    'TS': 'TypeScript'
+  };
 
   const toggleTag = (tag) => {
     setSelectedTags(prev =>
@@ -17,10 +27,11 @@ function App() {
 
   const extractTagsFromContent = (text) => {
     const commonTags = [...new Set([...defaultTags, ...smartTags])];
-    const found = commonTags.filter(tag =>
+    const expandedTags = [...commonTags, ...Object.keys(tagAliases)];
+    const found = expandedTags.filter(tag =>
       new RegExp(`\\b${tag}\\b`, 'i').test(text)
-    );
-    return found;
+    ).map(tag => tagAliases[tag] || tag);
+    return [...new Set(found)];
   };
 
   useEffect(() => {
@@ -31,10 +42,14 @@ function App() {
         setIsLoading(false);
 
         const tagCounts = {};
+        const topicGroups = {};
+
         data.forEach(item => {
           const topics = Array.isArray(item.topic) ? item.topic : [item.topic];
           topics.forEach(tag => {
             tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+            if (!topicGroups[tag]) topicGroups[tag] = [];
+            topicGroups[tag].push(item);
           });
         });
 
@@ -44,6 +59,7 @@ function App() {
 
         setSmartTags(sortedTags.slice(0, 5));
         setDefaultTags(sortedTags.slice(0, 10));
+        setGroupedByTopic(topicGroups);
       })
       .catch(err => {
         console.error('Failed to fetch:', err);
@@ -54,32 +70,19 @@ function App() {
   useEffect(() => {
     if (content.trim()) {
       const autoTags = extractTagsFromContent(content);
-      setSelectedTags((prev) => {
-        const merged = [...new Set([...prev, ...autoTags])];
-        return merged;
-      });
+      setSelectedTags((prev) => [...new Set([...prev, ...autoTags])]);
     }
   }, [content]);
-
-  const groupedByTopic = items.reduce((groups, item) => {
-    const topics = Array.isArray(item.topic) ? item.topic : [item.topic];
-    topics.forEach(tag => {
-      if (!groups[tag]) groups[tag] = [];
-      groups[tag].push(item);
-    });
-    return groups;
-  }, {});
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if ((!selectedTags.length && !customTag.trim()) || !content.trim()) {
+    if ((!selectedTags.length && !customTags.length) || !content.trim()) {
       alert('You must select or type a tag, and enter content.');
       return;
     }
 
-    const allTags = [...selectedTags];
-    if (customTag.trim()) allTags.push(customTag.trim());
+    const allTags = [...selectedTags, ...customTags];
 
     const newItem = {
       topic: allTags,
@@ -96,10 +99,18 @@ function App() {
       const savedItem = await res.json();
       setItems(prev => [savedItem, ...prev]);
       setSelectedTags([]);
+      setCustomTags([]);
       setCustomTag('');
       setContent('');
     } catch (err) {
       console.error('Failed to save item:', err);
+    }
+  };
+
+  const handleAddCustomTag = () => {
+    if (customTag.trim() && !customTags.includes(customTag.trim())) {
+      setCustomTags(prev => [...prev, customTag.trim()]);
+      setCustomTag('');
     }
   };
 
@@ -147,7 +158,7 @@ function App() {
           </div>
 
           <label className="block text-sm font-medium text-gray-700 mb-1">Default Tags:</label>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mb-2">
             {defaultTags.map((tag) => (
               <button
                 key={tag}
@@ -163,15 +174,37 @@ function App() {
               </button>
             ))}
           </div>
-        </div>
 
-        <input
-          type="text"
-          placeholder="Or type a new custom tag"
-          value={customTag}
-          onChange={(e) => setCustomTag(e.target.value)}
-          className="w-full p-2 mb-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
+          <div className="flex gap-2 mb-2">
+            <input
+              type="text"
+              placeholder="Add custom tag"
+              value={customTag}
+              onChange={(e) => setCustomTag(e.target.value)}
+              className="flex-grow p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+            <button
+              type="button"
+              onClick={handleAddCustomTag}
+              className="px-3 py-2 rounded-md bg-blue-500 text-white hover:bg-blue-600"
+            >
+              ➕
+            </button>
+          </div>
+
+          {customTags.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {customTags.map(tag => (
+                <span
+                  key={tag}
+                  className="bg-green-200 text-green-800 px-3 py-1 rounded-full text-sm"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
 
         <textarea
           placeholder="What did you learn?"
