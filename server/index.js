@@ -24,20 +24,21 @@ app.get('/learned', async (req, res) => {
 
 // POST new learned item
 app.post('/learned', async (req, res) => {
-  const { topic, content } = req.body;
+  const { topic, content, importance = 1 } = req.body;
 
   if (!Array.isArray(topic) || topic.length === 0 || !content) {
     return res.status(400).json({ error: 'Topic must be an array and content is required' });
   }
 
   try {
-    const newItem = new LearnedItem({ topic, content });
+    const newItem = new LearnedItem({ topic, content, importance });
     await newItem.save();
     res.status(201).json(newItem);
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
   }
 });
+
 
 
 // ✅ DELETE learned item by ID
